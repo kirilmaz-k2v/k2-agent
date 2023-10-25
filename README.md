@@ -44,7 +44,7 @@ Create an instance of `AgentSender`, and use the `send` method to add requests t
 Contributions are welcome. Please follow the standard Java coding conventions and ensure proper testing before submitting pull requests.
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
 
 ## Contact
 For any inquiries or issues, please open an issue in the repository.
