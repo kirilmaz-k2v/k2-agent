@@ -1,6 +1,6 @@
 def nexusDestination            = "10.21.3.24:8083"
 def nexusDestinationCloud       = "docker.share.cloud.k2view.com"
-def repo_link                   = "https://github.com/itayAlmani1/k2-agent.git"
+def repo_link                   = "https://github.com/k2view-LTD/k2-agent.git"
 def repo_branch                 = "master"
 def scan_link                   = ""
 
@@ -50,9 +50,7 @@ pipeline {
                             ], 
                             submoduleCfg: [],
                             userRemoteConfigs: [[
-                                url: "${repo_link}",
-                                credentialsId: 'itayAlmani1-jenkins'
-                            ]]
+                                url: "${repo_link}"]]
                             ]
                         )
                     }
