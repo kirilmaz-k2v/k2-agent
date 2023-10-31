@@ -66,11 +66,14 @@ pipeline {
                         script {
                             // Split by '/' and take second part
                             def imageNamePart = params.imageName.split("/")[1]
-                            // Update apiKey and productToken
+                            // Add projectName
+                            def projectName = "codeSecurityScan - build #${env.BUILD_NUMBER}"
+                            // Update apiKey, productToken and projectName
                             withCredentials([string(credentialsId: 'whitesource-apikey-image-scan-' + imageNamePart, variable: 'LOCAL_PRODUCT_TOKEN')]) {
-                                sh "sed -i 's|#productToken=.*|productToken=${LOCAL_PRODUCT_TOKEN}|' ./k2-agent/whitesource/code-scan.config"
+                                sh "sed -i 's|#productToken=.*|productToken=${LOCAL_PRODUCT_TOKEN}|' ./k2v-agent/whitesource/code-scan.config"
                             }
-                            sh "sed -i 's|#apiKey=.*|apiKey=$WS_APIKEY|' ./k2-agent/whitesource/code-scan.config"
+                            sh "sed -i 's|#apiKey=.*|apiKey=$WS_APIKEY|' ./k2v-agent/whitesource/code-scan.config"
+                            sh "sed -i 's|#projectName=.*|projectName=${projectName}|' ./k2v-agent/whitesource/code-scan.config"
                         }
                     }
                 }
@@ -83,7 +86,7 @@ pipeline {
                     steps {
                         script {
                             // Run the agent and save its output to a file
-                            sh 'java -jar wss-unified-agent.jar -c ./k2-agent/whitesource/code-scan.config -d ./k2-agent/ > agentOutput.txt'
+                            sh 'java -jar wss-unified-agent.jar -c ./k2v-agent/whitesource/code-scan.config -d ./k2-agent/ > agentOutput.txt'
                             // Read the content of the file
                             def agentOutput = readFile('agentOutput.txt').trim()
                             def scanURL = agentOutput =~ /https:\/\/saas.whitesourcesoftware.com\/Wss[^\[]*/
