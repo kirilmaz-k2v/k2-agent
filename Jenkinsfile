@@ -8,7 +8,7 @@ pipeline {
     agent {label 'master'}
     parameters {
         string(name: 'imageName', description: 'Image name to be set', defaultValue: 'k2view/k2v-agent')
-        string(name: 'version', description: 'Image version to be set', defaultValue: '0.1')
+        string(name: 'version', description: 'Image version to be set', defaultValue: '1.0')
         // Nexus
         booleanParam(name: 'upload_to_nexus', description: 'select it you want to upload the image to RND Nexus.', defaultValue: true)
         booleanParam(name: 'upload_to_nexus_as_latest', description: 'select it you want to upload the image to RND Nexus with latest tag.', defaultValue: true)
@@ -21,7 +21,7 @@ pipeline {
         // ECR parameters
         booleanParam(name: 'upload_to_ecr', description: 'select it you want to upload the image to ECR', defaultValue: false)
         choice(choices: ['cloud-dev', 'cloud', 'k2view_shared'], description: 'chose the target ecr', name: 'target')
-        string(name: 'ecrImagetag', description: 'Image name to be set', defaultValue: 'k2v-agent:0.1')
+        string(name: 'ecrImagetag', description: 'Image name to be set', defaultValue: 'k2v-agent:1.0')
         // GCR parameters
         booleanParam(name: 'upload_to_gcr', description: 'select it you want to upload the image to GCR', defaultValue: false)
         // ACR parameters
@@ -67,7 +67,7 @@ pipeline {
                             // Split by '/' and take second part
                             def imageNamePart = params.imageName.split("/")[1]
                             // Add projectName
-                            def projectName = "codeSecurityScan - build #${env.BUILD_NUMBER}"
+                            def projectName = "k2v-agent-codeSecurityScan-build-#${env.BUILD_NUMBER}"
                             // Update apiKey, productToken and projectName
                             withCredentials([string(credentialsId: 'whitesource-apikey-image-scan-' + imageNamePart, variable: 'LOCAL_PRODUCT_TOKEN')]) {
                                 sh "sed -i 's|#productToken=.*|productToken=${LOCAL_PRODUCT_TOKEN}|' ./k2v-agent/whitesource/code-scan.config"
@@ -86,7 +86,7 @@ pipeline {
                     steps {
                         script {
                             // Run the agent and save its output to a file
-                            sh 'java -jar wss-unified-agent.jar -c ./k2v-agent/whitesource/code-scan.config -d ./k2-agent/ > agentOutput.txt'
+                            sh 'java -jar wss-unified-agent.jar -c ./k2v-agent/whitesource/code-scan.config -d ./k2v-agent/ > agentOutput.txt'
                             // Read the content of the file
                             def agentOutput = readFile('agentOutput.txt').trim()
                             def scanURL = agentOutput =~ /https:\/\/saas.whitesourcesoftware.com\/Wss[^\[]*/
@@ -103,16 +103,17 @@ pipeline {
                     }
                 }
             }
-
         }
         stage('Docker: Building k2v-agent Image'){
             steps{
-                // Build full size image
-                sh(script : "docker build -t ${params.imageName}:${params.version}_full_size .", returnStdout: false)
-                // Squash the image (Reduse the size of the image)
-                sh(script : "/var/lib/jenkins/.local/bin/docker-squash -v -t ${params.imageName}:${params.version}  ${params.imageName}:${params.version}_full_size", returnStdout: false)
-                // Remove full size image
-                sh(script : "docker rmi -f ${params.imageName}:${params.version}_full_size", returnStdout: false)                
+                dir('k2v-agent') {
+                    // Build full size image
+                    sh(script : "docker build -t ${params.imageName}:${params.version}_full_size .", returnStdout: false)
+                    // Squash the image (Reduse the size of the image)
+                    sh(script : "/var/lib/jenkins/.local/bin/docker-squash -v -t ${params.imageName}:${params.version}  ${params.imageName}:${params.version}_full_size", returnStdout: false)
+                    // Remove full size image
+                    sh(script : "docker rmi -f ${params.imageName}:${params.version}_full_size", returnStdout: false) 
+                }            
             }
         }
         stage('Running mend.io image scan pipeline'){
