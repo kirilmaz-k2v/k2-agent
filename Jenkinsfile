@@ -21,7 +21,7 @@ pipeline {
         // ECR parameters
         booleanParam(name: 'upload_to_ecr', description: 'select it you want to upload the image to ECR', defaultValue: false)
         choice(choices: ['cloud-dev', 'cloud', 'k2view_shared'], description: 'chose the target ecr', name: 'target')
-        string(name: 'ecrImagetag', description: 'Image name to be set', defaultValue: 'k2v-agent:1.0')
+        string(name: 'ecrImagetag', description: 'Image name to be set', defaultValue: 'k2v-agent_1.0')
         // GCR parameters
         booleanParam(name: 'upload_to_gcr', description: 'select it you want to upload the image to GCR', defaultValue: false)
         // ACR parameters
