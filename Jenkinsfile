@@ -239,12 +239,12 @@ pipeline {
 
 def sendEmail(scanLink,status){
     int count=0
-    while(count<1){
+    while(count<6){
         try {
             _sendEmail(scanLink,status)
             return
         }catch(Exception ex) {
-            sleep(10)
+            sleep(20)
             count++
         }
     }
