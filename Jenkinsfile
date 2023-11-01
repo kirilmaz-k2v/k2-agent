@@ -208,7 +208,50 @@ pipeline {
                    sh "docker tag ${params.imageName}:${params.version} ${params.imageName}:latest"
                 }
             }
-        } 
+        }
+        stage('Upload to ECR from local docker') {
+            when{
+                expression { return params.upload_to_ecr }
+            }
+            steps {
+                build job: 'Push_image_to_ecr', parameters: [
+                    string(name: 'imageName', value: "${params.imageName}"),
+                    string(name: 'imageVersion', value: "${params.version}"), 
+                    string(name: 'target', value: "${params.target}"), 
+                    string(name: 'ecrImagetag', value: "${params.ecrImagetag}")],
+                    wait: true
+            }
+        }
+        stage('Upload to GCR from local docker') {
+            when{
+                expression { return params.upload_to_gcr }
+            }
+            steps {
+                build job: 'push_image_to_gcr', parameters: [
+                    string(name: 'imageName', value: "${params.imageName}"),
+                    string(name: 'imageVersion', value: "${params.version}"), 
+                    string(name: 'target', value: "${params.target}"), 
+                    string(name: 'crImageName', value: "fabric"),
+                    string(name: 'crImageTag', value: "${params.version}"),
+                    string(name: 'crRepo', value: "fabric")],
+                    wait: true
+            }
+        }
+        stage('Upload to ACR from local docker') {
+            when{
+                expression { return params.upload_to_acr }
+            }
+            steps {
+                build job: 'push_image_to_acr', parameters: [
+                    string(name: 'imageName', value: "${params.imageName}"),
+                    string(name: 'imageVersion', value: "${params.version}"), 
+                    string(name: 'target', value: "${params.target}"), 
+                    string(name: 'crImageName', value: "fabric"),
+                    string(name: 'crImageTag', value: "${params.version}"),
+                    string(name: 'crRepo', value: "fabric")],
+                    wait: true
+            }
+        }
         stage('Remove image from docker'){
             when{
                 expression { return params.remove_image }
