@@ -40,9 +40,10 @@ pipeline {
             steps{
                 dir('k2v-agent') {
                     // Build full size image
-                    sh(script : "docker build -t ${params.imageName}:${params.version}_full_size .", returnStdout: false)
-                    // Squash the image (Reduse the size of the image)
-                    sh(script : "/var/lib/jenkins/.local/bin/docker-squash -v -t ${params.imageName}:${params.version}  ${params.imageName}:${params.version}_full_size", returnStdout: false)
+                    sh(script : "docker build -t ${params.imageName}:${params.version} .", returnStdout: false)
+                    // Our recommendation is squashing the image
+                    // Squash the image (Reduce the size of the image) - for that docker squash needs to be installed on the Jenkins server
+                    sh(script : "docker-squash -v -t ${params.imageName}:${params.version}  ${params.imageName}:${params.version}_full_size", returnStdout: false)
                     // Remove full size image
                     sh(script : "docker rmi -f ${params.imageName}:${params.version}_full_size", returnStdout: false) 
                 }            
