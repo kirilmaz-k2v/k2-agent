@@ -40,6 +40,16 @@ Create an instance of `AgentSender`, and use the `send` method to add requests t
 ## Environment Variables
 - `K2VIEW_MANAGER_URL`: URL for fetching the list of URLs to process.
 
+## CI/CD
+- Jenkinsfile job for building the agent's image.
+### Parameters
+| Name                  | Type      | Description                           | Default Value      |
+|-----------------------|-----------|---------------------------------------|--------------------|
+| imageName             | String    | Image name                            | 'k2view/k2v-agent' |
+| version               | String    | Image tag                             | '1.0'              |
+| update_image_latest   | Boolean   | Change tag to latest in local Docker  | False              |
+| remove_image          | Boolean   | Remove image from local Docker        | False              |
+
 ## Contributing
 Contributions are welcome. Please follow the standard Java coding conventions and ensure proper testing before submitting pull requests.
 

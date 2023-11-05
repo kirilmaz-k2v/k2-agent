@@ -2,14 +2,14 @@ def repo_link                   = "https://github.com/k2view-LTD/k2-agent.git"
 def repo_branch                 = "master"
 
 pipeline {
-    agent {label 'master'}
+    agent any
     parameters {
         // Image
         string(name: 'imageName', description: 'Image name to be set', defaultValue: 'k2view/k2v-agent')
         string(name: 'version', description: 'Image version to be set', defaultValue: '1.0')
         // Docker
-        booleanParam(name: 'update_image_latest', description: 'Select it if you want to update the image the latest version on local docker.', defaultValue: true)
-        booleanParam(name: 'remove_image', description: 'Select it if you want to remove the image from local docker.', defaultValue: true)
+        booleanParam(name: 'update_image_latest', description: 'Select it if you want to update the image the latest version on local docker.', defaultValue: false)
+        booleanParam(name: 'remove_image', description: 'Select it if you want to remove the image from local docker.', defaultValue: false)
     }
     options {
         disableConcurrentBuilds()
@@ -71,15 +71,6 @@ pipeline {
     }
 
     post {
-        success {
-            sendEmail(scan_link, "SUCCESS")
-        }
-        failure {
-            script {
-                scan_link = "Scan failed"
-            }
-            sendEmail(scan_link, "FAILED") 
-        }
         always {
             deleteDir()
         }
