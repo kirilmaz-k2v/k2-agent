@@ -16,14 +16,9 @@ class AgentSenderTest {
 
     static TestingHttpServer server;
     @BeforeAll
-    public static void setup() throws Exception {
-        server = new TestingHttpServer();
-        server.start();
-    }
-
-    @AfterAll
-    public static void teardown() {
-        server.close();
+    public static void setup() {
+        server = TestingHttpServer.INSTANCE;
+        server.reset();
     }
 
     @Test

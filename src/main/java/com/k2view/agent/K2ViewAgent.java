@@ -21,6 +21,8 @@ import static java.lang.Integer.parseInt;
  */
 public class K2ViewAgent {
 
+    private static final int MAX_RETRY = 3;
+
     /**
      * The polling interval in seconds for checking the inbox for new messages.
      */
@@ -81,12 +83,12 @@ public class K2ViewAgent {
                         interval = inboxMessages.pollInterval() > 0 ? inboxMessages.pollInterval() : pollingInterval;
                         for (Request req : inboxMessages.requests()) {
                             lastTaskId = req.taskId();
-                            dispatcher.send(req);
                             Utils.logMessage("INFO", "Added URL to the Queue:" + req);
+                            dispatcher.send(req);
                         }
                     }
-                    responseList = dispatcher.receive(interval, TimeUnit.SECONDS);
-                    Utils.logMessage("INFO", responseList.toString());
+                    var list = dispatcher.receive(interval, TimeUnit.SECONDS);
+                    responseList = filterResponses(list);
                 }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -95,6 +97,28 @@ public class K2ViewAgent {
             }
         });
         latch.await();
+    }
+
+    private List<Response> filterResponses(List<Response> responses) {
+        List<Response> filteredResponses = new ArrayList<>();
+        for (Response res : responses) {
+            if(needToRetry(res)){
+                retry(res.request());
+            } else {
+                filteredResponses.add(res);
+            }
+        }
+        return filteredResponses;
+    }
+
+    private boolean needToRetry(Response res) {
+        return res.code() >= 400 && res.request().getTryCount() < MAX_RETRY-1;
+    }
+
+    private void retry(Request request) {
+        Utils.logMessage("INFO", "Retrying request: " + request);
+        request.incrementTryCount();
+        dispatcher.send(request);
     }
 
     /**

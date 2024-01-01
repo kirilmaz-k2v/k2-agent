@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -19,14 +20,9 @@ class K2ViewAgentTest {
 
     static TestingHttpServer server;
     @BeforeAll
-    public static void setup() throws Exception {
-        server = new TestingHttpServer();
-        server.start();
-    }
-
-    @AfterAll
-    public static void teardown() throws Exception {
-        server.close();
+    public static void setup() {
+        server = TestingHttpServer.INSTANCE;
+        server.reset();
     }
 
     class MockPostMan implements Postman {
@@ -122,4 +118,62 @@ class K2ViewAgentTest {
         agent.run();
     }
 
+    class MockPostManRetry implements Postman {
+
+        long interval = 10;
+
+        Supplier<Requests> requests = ()->new Requests(Collections.singletonList(new Request("test", "http://localhost:8080", "GET", Map.of("Content-Type", "application/json"), "body")),
+                interval);
+        @Override
+        public Requests getInboxMessages(List<Response> responses, String lastTaskId) {
+            Requests requests1 = requests.get();
+            if(!requests1.isEmpty()){
+                requests = ()-> new Requests(Collections.emptyList(), interval);
+            }
+            return requests1;
+        }
+    }
+
+    class MockDispatcherRetry implements AgentDispatcher {
+
+        int count = 0;
+        CountDownLatch latch = new CountDownLatch(1);
+        Request request = new Request("test", "http://localhost:8080", "GET", Map.of("Content-Type", "application/json"), "body");
+        @Override
+        public void send(Request request) {
+            count++;
+            if(count == 3){
+                latch.countDown();
+            }
+        }
+
+        @Override
+        public List<Response> receive(long timeout, TimeUnit unit) throws InterruptedException {
+            return Collections.singletonList(new Response(request, 500, "error"));
+        }
+
+        @Override
+        public void close() throws Exception {
+
+        }
+    }
+
+    @Test
+    public void test_retry() throws InterruptedException {
+        MockPostManRetry postman = new MockPostManRetry();
+        MockDispatcherRetry agentSender = new MockDispatcherRetry();
+        var agent = new K2ViewAgent(postman, 60, agentSender, Runnable::run);
+        Thread thread = new Thread(()-> {
+            try {
+                agentSender.latch.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                agent.stop();
+            }
+        });
+        thread.start();
+        agent.run();
+        assertEquals(3, agentSender.count);
+    }
 }

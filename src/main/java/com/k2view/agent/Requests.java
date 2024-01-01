@@ -14,6 +14,10 @@ import java.util.List;
 
 public record Requests(List<Request> requests, long pollInterval) {
 
+    public boolean isEmpty() {
+        return requests.isEmpty();
+    }
+
     public static class Adapter extends TypeAdapter<Requests>{
         @Override
         public void write(JsonWriter jsonWriter, Requests requests) throws IOException {
