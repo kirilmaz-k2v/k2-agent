@@ -11,8 +11,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.k2view.agent.Utils.def;
-import static com.k2view.agent.Utils.env;
+import static com.k2view.agent.Utils.*;
 import static java.lang.Integer.parseInt;
 
 /**
@@ -102,6 +101,7 @@ public class K2ViewAgent {
     private List<Response> filterResponses(List<Response> responses) {
         List<Response> filteredResponses = new ArrayList<>();
         for (Response res : responses) {
+            logMessage("INFO", "Received response: " + res);
             if(needToRetry(res)){
                 retry(res.request());
             } else {
