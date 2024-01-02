@@ -16,7 +16,30 @@ import static com.k2view.agent.Utils.dynamicString;
 /**
  * Represents an HTTP request that is sent to the server.
  */
-public record Request(String taskId, String url, String method, Map<String, Object> header, String body) {
+public record Request(String taskId, String url, String method, Map<String, Object> header, String body, int[] tryCount) {
+    Request(String taskId, String url, String method, Map<String, Object> header, String body) {
+        this(taskId, url, method, header, body, new int[]{0});
+    }
+
+    public int getTryCount() {
+        return tryCount[0];
+    }
+
+    public void incrementTryCount() {
+        tryCount[0]++;
+    }
+
+    @Override
+    public String toString() {
+        return """
+                Request{
+                    taskId='%s',
+                    url='%s',
+                    method='%s',
+                    tryCount='%s'
+                }
+                """.formatted(taskId, url, method, tryCount[0]);
+    }
 
     public static class Adapter extends TypeAdapter<Request> {
         @Override

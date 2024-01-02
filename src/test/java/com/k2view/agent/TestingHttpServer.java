@@ -10,8 +10,18 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class TestingHttpServer implements AutoCloseable {
+
+    public static final TestingHttpServer INSTANCE = new TestingHttpServer();
     HttpServer server;
     AtomicInteger counter = new AtomicInteger(0);
+
+    private TestingHttpServer() {
+        try {
+            start();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public void start() throws Exception {
         HttpServer server = HttpServer.create();
@@ -25,6 +35,10 @@ class TestingHttpServer implements AutoCloseable {
         if (server != null) {
             server.stop(0);
         }
+    }
+
+    public void reset() {
+        counter.set(0);
     }
 
     class MyHandler implements HttpHandler {
